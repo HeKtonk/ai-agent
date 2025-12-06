@@ -1,0 +1,30 @@
+# Sensitive info
+.env
+
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+venv/
+env/
+
+# Neovim / swap / backup / sessions
+*.swp
+*.swo
+*.swm
+*~
+Session.vim
+
+# OS / file manager cruft (in case)
+.DS_Store
+*.tmp
+
+# Logger
+game_state.jsonl
+game_events.jsonl
