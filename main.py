@@ -18,6 +18,13 @@ def main():
     prompt = "Why is Boot.dev such a great place to learn backend development? Use one paragraph maximum."
 
     res = client.models.generate_content(model=model, contents=prompt)
+
+
+    if res.usage_metadata is None:
+        raise RuntimeError("failed api request, usage_metadata is None")
+    print(f"Prompt tokens: {res.usage_metadata.prompt_token_count}")
+    print(f"Response tokens: {res.usage_metadata.candidates_token_count}")
+
     print(res.text)
 
 
