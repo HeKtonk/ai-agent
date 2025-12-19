@@ -1,4 +1,7 @@
 import os
+from google import genai
+from google.genai import types
+
 
 def get_files_info(working_directory, directory="."):
 
@@ -16,3 +19,23 @@ def get_files_info(working_directory, directory="."):
         file_path = f"{target_dir_abs_path}/{file}"
         result.append(f"  - {file}: file_size={os.path.getsize(file_path)}, is_dir={os.path.isdir(file_path)}")
     return '\n'.join(result)
+
+schema_get_files_info = types.FunctionDeclaration(
+    name="get_files_info",
+    description=(
+        "Lists files in the specified directory along with their sizes, "
+        "constrained to the working directory."
+    ),
+    parameters=types.Schema(
+        type=types.Type.OBJECT,
+        properties={
+            "directory": types.Schema(
+                type=types.Type.STRING,
+                description=(
+                    "The directory to list files from, relative to the working "
+                    "directory. Use '.' for the working directory itself."
+                ),
+            ),
+        },
+    ),
+)

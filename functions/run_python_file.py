@@ -1,5 +1,7 @@
 import os
 import subprocess
+from google import genai
+from google.genai import types
 
 def run_python_file(working_directory, file_path, args=[]):
 
@@ -26,3 +28,32 @@ def run_python_file(working_directory, file_path, args=[]):
 
     return result
 
+schema_run_python_file = types.FunctionDeclaration(
+    name="run_python_file",
+    description=(
+        "Run python file in the specified directory and print the output, "
+        "constrained to the working directory."
+    ),
+    parameters=types.Schema(
+        type=types.Type.OBJECT,
+        required=["file_path"],
+        properties={
+            "file_path": types.Schema(
+                type=types.Type.STRING,
+                description=(
+                    "The path to list files from, relative to the working "
+                    "directory. Use '.' for the working directory itself."
+                ),
+            ),
+            "args": types.Schema(
+                type=types.Type.ARRAY,
+                items=types.Schema(
+                    type=types.Type.STRING,
+                ),
+                description=(
+                    "Optionnal list of arguments"
+                ),
+            ),
+        },
+    ),
+)
