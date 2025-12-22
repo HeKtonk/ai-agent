@@ -8,6 +8,7 @@ from functions.get_files_info import schema_get_files_info
 from functions.get_file_content import schema_get_file_content
 from functions.write_file import schema_write_file
 from functions.run_python_file import schema_run_python_file
+from functions.call_function import call_function
 
 load_dotenv()
 api_key = os.environ.get("GEMINI_API_KEY")
@@ -47,10 +48,23 @@ def main():
         print(f"Prompt tokens: {res.usage_metadata.prompt_token_count}")
         print(f"Response tokens: {res.usage_metadata.candidates_token_count}")
 
+    function_call_responses = []
     print(res.text)
-    if res.function_calls and (res.function_calls != None):
+    if res.function_calls and (res.function_calls is not None):
         for fc in res.function_calls:
             print(f"Calling function: {fc.name}({fc.args})")
+            function_call_result = call_function(fc)
+
+            part = function_call_result.parts[0]
+
+            if not part.function_response or not part.function_response.response:
+                raise Exception("Fatal exception")
+
+            function_call_responses.append(part)
+
+            if args.verbose:
+                print(f"-> {part.function_response.response}")
+
 
 if __name__ == "__main__":
     main()
