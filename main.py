@@ -38,32 +38,55 @@ def main():
     ])
     conf = types.GenerateContentConfig(tools=[available_functions],system_instruction=system_prompt)
 
-
-    res = client.models.generate_content(model=model, contents=messages, config=conf)
-
-    if res.usage_metadata is None:
-        raise RuntimeError("failed api request, usage_metadata is None")
     if args.verbose:
         print(f"User prompt: {args.prompt}")
-        print(f"Prompt tokens: {res.usage_metadata.prompt_token_count}")
-        print(f"Response tokens: {res.usage_metadata.candidates_token_count}")
 
-    function_call_responses = []
-    print(res.text)
-    if res.function_calls and (res.function_calls is not None):
-        for fc in res.function_calls:
-            print(f"Calling function: {fc.name}({fc.args})")
-            function_call_result = call_function(fc)
+    keep_going = True
+    loops_number = 0
+    while keep_going:
+        loops_number += 1
+        if loops_number >= 20:
+            keep_going = False
 
-            part = function_call_result.parts[0]
+        try:
+            res = client.models.generate_content(model=model, contents=messages, config=conf)
 
-            if not part.function_response or not part.function_response.response:
-                raise Exception("Fatal exception")
+            if not res.function_calls and res.text:
+                print(res.text)
+                break
 
-            function_call_responses.append(part)
+            for candidate in res.candidates:
+                messages.append(candidate.content)
 
+            if res.usage_metadata is None:
+                raise RuntimeError("failed api request, usage_metadata is None")
             if args.verbose:
-                print(f"-> {part.function_response.response}")
+                print(f"Prompt tokens: {res.usage_metadata.prompt_token_count}")
+                print(f"Response tokens: {res.usage_metadata.candidates_token_count}")
+
+            function_call_responses = []
+
+            if res.function_calls and (res.function_calls is not None):
+                for fc in res.function_calls:
+                    print(f"Calling function: {fc.name}({fc.args})")
+                    function_call_result = call_function(fc)
+
+                    part = function_call_result.parts[0]
+
+                    if not part.function_response or not part.function_response.response:
+                        raise Exception("Fatal exception")
+
+                    function_call_responses.append(part)
+
+                if function_call_responses:
+                    messages.append(types.Content(role="user", parts=function_call_responses))
+
+                if args.verbose:
+                    print(f"-> {part.function_response.response}")
+
+        except Exception as e:
+            print(f"Error encounter in the loop number {loops_number}")
+            print(f"Error: {e}")
 
 
 if __name__ == "__main__":
